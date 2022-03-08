@@ -1,0 +1,34 @@
+.container {
+  height: 100vh;
+  min-width: 1080px;
+}
+
+.text {
+  font-size: 18px;
+  color: white;
+  font-style: bold;
+  text-align: right;
+}
+
+.left {
+  float: left;
+  width: 50%;
+  min-width: 400px;
+  height: 30vh;
+  background: #ff0;
+  margin-right: -300px;
+}
+
+.rightTop {
+  float: right top;
+  width: 50%;
+  height: 50vh;
+  background: #efefef;
+}
+
+.rightBottom {
+  float: right;
+  width: 50%;
+  height: 50vh;
+  background: #efefef;
+}
