@@ -10,7 +10,7 @@ import { PieDataItem } from '../components/SamplePie';
 import { Sample } from '../types/Sample';
 import { STATE, DAY, PRODUCT } from '../types/Enums';
 import { useFetch } from '../utils/useFetch';
-import standarizeSampleData from '../utils/parseData';
+import standardizeSampleData from '../utils/parseData';
 
 export default function Home() {
   const days = [DAY.Sun, DAY.Mon, DAY.Tue, DAY.Wed, DAY.Thu, DAY.Fri, DAY.Sat];
@@ -42,7 +42,7 @@ export default function Home() {
   );
 
   useEffect(() => {
-    setSamples(standarizeSampleData(data));
+    setSamples(standardizeSampleData(data));
   }, [data]);
 
   useEffect(() => {

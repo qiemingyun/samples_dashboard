@@ -1,7 +1,7 @@
 import { DAY, STATE } from '../types/Enums';
 import { Sample } from '../types/Sample';
 
-const standarizeSampleData = (data: Sample[]): Sample[] => {
+const standardizeSampleData = (data: Sample[]): Sample[] => {
   const days = [DAY.Sun, DAY.Mon, DAY.Tue, DAY.Wed, DAY.Thu, DAY.Fri, DAY.Sat];
   data?.forEach((sample) => {
     // split samples to product names and flavors
@@ -77,4 +77,4 @@ const standarizeSampleData = (data: Sample[]): Sample[] => {
   return data;
 };
 
-export default standarizeSampleData;
+export default standardizeSampleData;

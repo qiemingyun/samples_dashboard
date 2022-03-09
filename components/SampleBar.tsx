@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { DAY } from '../pages/index';
+import { DAY } from '../types/Enums';
 
 interface BarProps {
   title: string;

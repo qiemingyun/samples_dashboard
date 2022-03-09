@@ -8,7 +8,7 @@ export const useFetch = <T>(url: string, options?: any) => {
   useEffect(() => {
     setLoading(true);
     fetch(url, options)
-      .then((res) => res.json())
+      .then((res) => res.json()) // check status 200...  test: wait for
       .then((data) => {
         setData(data);
         setError(null);

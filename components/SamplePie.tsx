@@ -24,16 +24,16 @@ const SamplePie = (props: PieProps) => {
       left: 'left',
       top: '10%',
       formatter: function (name) {
-        var data: PieDataItem[] = option.series[0].data;
-        var total = 0;
-        var tarValue;
-        for (var i = 0, l = data.length; i < l; i++) {
+        const data: PieDataItem[] = option.series[0].data;
+        let total = 0;
+        let tarValue;
+        for (let i = 0, l = data.length; i < l; i++) {
           total += data[i].value;
           if (data[i].name == name) {
             tarValue = data[i].value;
           }
         }
-        var p = ((tarValue / total) * 100).toFixed(2);
+        const p = ((tarValue / total) * 100).toFixed(2);
         return name + ' ' + ' ' + '(' + p + '%)';
       },
     },
