@@ -10,8 +10,9 @@ The GeoJson data used in displaying the Australian map is obtained from a github
 Please see the reference link for details:
 https://raw.githubusercontent.com/tonywr71/GeoJson-Data/master/australian-states.json
 
-## Main Structure
+## Structure
 
+├── README.md
 ├── __test__
 │   └── parseData.test.ts
 ├── assets
@@ -21,19 +22,30 @@ https://raw.githubusercontent.com/tonywr71/GeoJson-Data/master/australian-states
 │   ├── SampleBar.tsx
 │   ├── SamplePie.tsx
 │   └── SelectOption.tsx
+├── next-env.d.ts
+├── next.config.js
+├── package-lock.json
+├── package.json
 ├── pages
 │   ├── _app.js
 │   └── index.tsx
+├── public
+│   ├── favicon.ico
+│   └── vercel.svg
 ├── styles
 │   ├── Home.module.css
 │   └── globals.css
+├── tree.md
+├── tsconfig.json
 ├── types
 │   ├── Enums.ts
 │   └── Sample.ts
 ├── utils
-    ├── charts.ts
-    ├── parseData.ts
-    └── useFetch.ts
+│   ├── charts.ts
+│   ├── parseData.ts
+│   └── useFetch.ts
+└── yarn.lock
+
 
 ## Environment Required
 
