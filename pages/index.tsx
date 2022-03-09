@@ -1,31 +1,19 @@
 import SamplePie from '../components/SamplePie';
 import SampleBar from '../components/SampleBar';
-import Map, { MapDataItem, MapProps } from '../components/AustraliaMap';
+import Map, { MapProps } from '../components/AustraliaMap';
 import styles from '../styles/Home.module.css';
-import { Row, Col, Select } from 'antd';
+import { Row, Col } from 'antd';
 import { Header } from 'antd/lib/layout/layout';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import SelectOption, { OptionProps } from '../components/SelectOption';
+import { useEffect, useState } from 'react';
+import SelectOption from '../components/SelectOption';
 import { PieDataItem } from '../components/SamplePie';
 import { Sample } from '../types/Sample';
-import { STATE, DAY, PRODUCT } from '../types/Enums';
+import { PRODUCT } from '../types/Enums';
 import { useFetch } from '../utils/useFetch';
-import standardizeSampleData from '../utils/parseData';
+import { standardizeSampleData } from '../utils/parseData';
+import { getBarProps, getMapProps, getPieProps } from '../utils/charts';
 
 export default function Home() {
-  const days = [DAY.Sun, DAY.Mon, DAY.Tue, DAY.Wed, DAY.Thu, DAY.Fri, DAY.Sat];
-
-  const states = [
-    STATE.NSW,
-    STATE.VIC,
-    STATE.QLD,
-    STATE.SA,
-    STATE.WA,
-    STATE.TAS,
-    STATE.NT,
-    STATE.ACT,
-  ];
-
   const [productOptions, setProductOptions] = useState([]);
   const [barXData, setBarXData] = useState([]);
   const [barYData, setBarYData] = useState([]);
@@ -33,35 +21,60 @@ export default function Home() {
   const [mapProps, setMapProps] = useState<MapProps>({});
   const [samples, setSamples] = useState<Sample[]>();
 
-  const {
-    loading,
-    error,
-    data = [],
-  } = useFetch<Sample[]>(
+  const { loading, data = [] } = useFetch<Sample[]>(
     'https://secure.bulknutrients.com.au/content/bEzWsxcHPewMt/sampledata.json'
   );
+
+  var _ = require('lodash');
 
   useEffect(() => {
     setSamples(standardizeSampleData(data));
   }, [data]);
 
   useEffect(() => {
-    console.log('useEffectSamples,', samples);
-    analyzeProductData(samples);
+    handleProductOptions(data);
+    analyzeData(samples, 'ProductName');
   }, [samples]);
 
-  var _ = require('lodash');
+  /**
+   * parse product options
+   * @param data
+   */
+  function handleProductOptions(data: Sample[]) {
+    const uniqProductLists = _.uniqBy(data, 'ProductName');
+    const uniqProductNames = _.map(uniqProductLists, 'ProductName');
+
+    let productOpts = [{ value: PRODUCT.All, name: PRODUCT.All }];
+    uniqProductNames.forEach((productName) => {
+      productOpts.push({ value: productName, name: productName });
+    });
+    setProductOptions(productOpts);
+  }
 
   const onProductChange = (productName: string) => {
     if (productName === PRODUCT.All) {
-      analyzeProductData(samples);
+      analyzeData(samples, 'ProductName');
     } else {
       const productSamples = _.filter(samples, function (sample: Sample) {
         return sample.ProductName === productName;
       });
-      analyzeFlavorData(productSamples);
+      analyzeData(productSamples, 'Flavor');
     }
   };
+
+  /**
+   * analyze data
+   * @param data
+   * @param pieFilterName
+   */
+  function analyzeData(data: Sample[], pieFilterName: string) {
+    setMapProps(getMapProps(data));
+    setPieData(getPieProps(data, pieFilterName));
+
+    const { days, numByDayOrdered } = getBarProps(data);
+    setBarXData(days);
+    setBarYData(numByDayOrdered);
+  }
 
   return (
     <div className={styles.container}>
@@ -116,105 +129,4 @@ export default function Home() {
       </Row>
     </div>
   );
-
-  function analyzeProductData(data: Sample[]) {
-    // filter by states
-    const stateSamples = _.filter(data, function (sample: Sample) {
-      return sample.StateName !== 'InValidPostCode';
-    });
-
-    // count by state
-    const numByState = _.countBy(stateSamples, 'StateName');
-    // console.log('numByState', numByState);
-    let stateDataMap = [];
-    states.forEach((state) => {
-      let num = _.get(numByState, state);
-      if (num === undefined) {
-        num = 0;
-      }
-      stateDataMap.push({ name: state, value: num });
-    });
-
-    const stateValues = _.map(stateDataMap, 'value');
-    let mapPropsData: MapProps = {};
-    mapPropsData.data = stateDataMap;
-    mapPropsData.maxNum = _.ceil(_.max(stateValues), -2);
-    mapPropsData.minNum = _.floor(_.min(stateValues), -2);
-
-    setMapProps(mapPropsData);
-
-    // unique product names
-    const uniqProductLists = _.uniqBy(data, 'ProductName');
-    const uniqProductNames = _.map(uniqProductLists, 'ProductName');
-
-    let productOpts = [{ value: PRODUCT.All, name: PRODUCT.All }];
-    uniqProductNames.forEach((productName) => {
-      productOpts.push({ value: productName, name: productName });
-    });
-    setProductOptions(productOpts);
-
-    // count by product
-    const numByProduct = _.countBy(data, 'ProductName');
-    const pieDataMap = _.map(numByProduct, function (value, name) {
-      return { value: value, name: name };
-    });
-    setPieData(_.orderBy(pieDataMap, 'value', 'desc'));
-
-    // count by day
-    const numByDay = _.countBy(data, 'LocalDay');
-    // console.log('numByDay', numByDay);
-    let numByDayOrdered = [];
-    days.forEach((day) => {
-      numByDayOrdered.push(_.get(numByDay, day));
-    });
-    // console.log('numByDayOrdered', numByDayOrdered);
-    setBarXData(days);
-    setBarYData(numByDayOrdered);
-  }
-
-  function analyzeFlavorData(data: Sample[]) {
-    console.log('analyzeFlavorData', data);
-    // filter by states
-    const stateSamples = _.filter(data, function (sample: Sample) {
-      return sample.StateName !== 'InValidPostCode';
-    });
-
-    // count by state
-    const numByState = _.countBy(stateSamples, 'StateName');
-    // console.log('numByState', numByState);
-    let stateDataMap = [];
-    states.forEach((state) => {
-      let num = _.get(numByState, state);
-      if (num === undefined) {
-        num = 0;
-      }
-      stateDataMap.push({ name: state, value: num });
-    });
-
-    const stateValues = _.map(stateDataMap, 'value');
-    let mapPropsData: MapProps = {};
-    mapPropsData.data = stateDataMap;
-    mapPropsData.maxNum = _.ceil(_.max(stateValues), -2);
-    mapPropsData.minNum = _.floor(_.min(stateValues), -2);
-
-    setMapProps(mapPropsData);
-
-    // count by product
-    const numByFlavor = _.countBy(data, 'Flavor');
-    const pieDataMap = _.map(numByFlavor, function (value, name) {
-      return { value: value, name: name };
-    });
-    setPieData(_.orderBy(pieDataMap, 'value', 'desc'));
-
-    // count by day
-    const numByDay = _.countBy(data, 'LocalDay');
-    // console.log('numByDay', numByDay);
-    let numByDayOrdered = [];
-    days.forEach((day) => {
-      numByDayOrdered.push(_.get(numByDay, day));
-    });
-    // console.log('numByDayOrdered', numByDayOrdered);
-    setBarXData(days);
-    setBarYData(numByDayOrdered);
-  }
 }

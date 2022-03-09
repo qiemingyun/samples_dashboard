@@ -1,80 +1,177 @@
 import { DAY, STATE } from '../types/Enums';
 import { Sample } from '../types/Sample';
 
-const standardizeSampleData = (data: Sample[]): Sample[] => {
-  const days = [DAY.Sun, DAY.Mon, DAY.Tue, DAY.Wed, DAY.Thu, DAY.Fri, DAY.Sat];
-  data?.forEach((sample) => {
-    // split samples to product names and flavors
-    const samples = sample.Sample.split(' - ');
-    sample.ProductName = samples[0];
-    sample.Flavor = samples[1];
-    // convert date
-    const stdDate = new Date(sample.Date);
-    let tz = 'Australia/ACT';
-    // standarize state names based on postcode
-    // also set time zone
-    if (
-      (sample.Postcode >= 1000 && sample.Postcode <= 1999) ||
-      (sample.Postcode >= 2000 && sample.Postcode <= 2599) ||
-      (sample.Postcode >= 2619 && sample.Postcode <= 2899) ||
-      (sample.Postcode >= 2921 && sample.Postcode <= 2999)
-    ) {
-      tz = 'Australia/NSW';
-      sample.StateName = STATE.NSW;
-    } else if (
-      (sample.Postcode >= 200 && sample.Postcode <= 299) ||
-      (sample.Postcode >= 2600 && sample.Postcode <= 2618) ||
-      (sample.Postcode >= 2900 && sample.Postcode <= 2920)
-    ) {
-      tz = 'Australia/ACT';
-      sample.StateName = STATE.ACT;
-    } else if (
-      (sample.Postcode >= 3000 && sample.Postcode <= 3999) ||
-      (sample.Postcode >= 8000 && sample.Postcode <= 8999)
-    ) {
-      tz = 'Australia/Victoria';
-      sample.StateName = STATE.VIC;
-    } else if (
-      (sample.Postcode >= 4000 && sample.Postcode <= 4999) ||
-      (sample.Postcode >= 9000 && sample.Postcode <= 9999)
-    ) {
-      tz = 'Australia/Queensland';
-      sample.StateName = STATE.QLD;
-    } else if (
-      (sample.Postcode >= 5000 && sample.Postcode <= 5799) ||
-      (sample.Postcode >= 5800 && sample.Postcode <= 5999)
-    ) {
-      tz = 'Australia/South';
-      sample.StateName = STATE.SA;
-    } else if (
-      (sample.Postcode >= 6000 && sample.Postcode <= 6797) ||
-      (sample.Postcode >= 6800 && sample.Postcode <= 6999)
-    ) {
-      tz = 'Australia/West';
-      sample.StateName = STATE.WA;
-    } else if (
-      (sample.Postcode >= 7000 && sample.Postcode <= 7799) ||
-      (sample.Postcode >= 7800 && sample.Postcode <= 7999)
-    ) {
-      tz = 'Australia/Tasmania';
-      sample.StateName = STATE.TAS;
-    } else if (
-      (sample.Postcode >= 800 && sample.Postcode <= 899) ||
-      (sample.Postcode >= 900 && sample.Postcode <= 999)
-    ) {
-      tz = 'Australia/North';
-      sample.StateName = STATE.NT;
-    } else {
-      sample.StateName = 'InValidPostCode';
-    }
+const moment = require('moment-timezone');
 
-    // standarize date
-    const moment = require('moment-timezone');
-    const localDate = moment.utc(stdDate).tz(tz).format('YYYY-MM-DD HH:mm:ss');
-    sample.LocalDate = localDate;
-    sample.LocalDay = days[new Date(localDate).getDay()];
+const LOCAL_DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+
+/**
+ *
+ * @param data
+ * @returns
+ */
+export function standardizeSampleData(data: Sample[]): Sample[] {
+  data?.forEach((sample) => {
+    standardizeSample(sample);
   });
   return data;
-};
+}
 
-export default standardizeSampleData;
+/**
+ * standardize sample
+ * @param sample
+ */
+export function standardizeSample(sample: Sample): Sample {
+  // split product names and flavors
+  const { productName, flavor } = splitProductName(sample.Sample);
+  sample.ProductName = productName;
+  sample.Flavor = flavor;
+
+  // standardize state names
+  const { stateName } = standardizeState(sample.Postcode);
+  sample.StateName = stateName;
+
+  // convert to local date
+  const { localDate, day } = convert2LocalDate(
+    sample.Date,
+    sample.StateName,
+    LOCAL_DATE_FORMAT
+  );
+  sample.LocalDate = localDate;
+  sample.LocalDay = day;
+
+  return sample;
+}
+
+/**
+ * split product names and flavors
+ * @param sampleName
+ * @returns
+ */
+function splitProductName(sampleName: string): {
+  productName: string;
+  flavor: string;
+} {
+  const samples = sampleName.split('-');
+  const productName = samples[0].trim();
+  const flavor = samples[1]?.trim();
+
+  return { productName, flavor };
+}
+
+/**
+ * standardize state names based on postcode
+ * @param sample
+ * @returns
+ */
+function standardizeState(postcode: number): { stateName: string } {
+  let stateName: string = '';
+  if (
+    (postcode >= 1000 && postcode <= 1999) ||
+    (postcode >= 2000 && postcode <= 2599) ||
+    (postcode >= 2619 && postcode <= 2899) ||
+    (postcode >= 2921 && postcode <= 2999)
+  ) {
+    stateName = STATE.NSW;
+  } else if (
+    (postcode >= 200 && postcode <= 299) ||
+    (postcode >= 2600 && postcode <= 2618) ||
+    (postcode >= 2900 && postcode <= 2920)
+  ) {
+    stateName = STATE.ACT;
+  } else if (
+    (postcode >= 3000 && postcode <= 3999) ||
+    (postcode >= 8000 && postcode <= 8999)
+  ) {
+    stateName = STATE.VIC;
+  } else if (
+    (postcode >= 4000 && postcode <= 4999) ||
+    (postcode >= 9000 && postcode <= 9999)
+  ) {
+    stateName = STATE.QLD;
+  } else if (
+    (postcode >= 5000 && postcode <= 5799) ||
+    (postcode >= 5800 && postcode <= 5999)
+  ) {
+    stateName = STATE.SA;
+  } else if (
+    (postcode >= 6000 && postcode <= 6797) ||
+    (postcode >= 6800 && postcode <= 6999)
+  ) {
+    stateName = STATE.WA;
+  } else if (
+    (postcode >= 7000 && postcode <= 7799) ||
+    (postcode >= 7800 && postcode <= 7999)
+  ) {
+    stateName = STATE.TAS;
+  } else if (
+    (postcode >= 800 && postcode <= 899) ||
+    (postcode >= 900 && postcode <= 999)
+  ) {
+    stateName = STATE.NT;
+  } else {
+    stateName = 'InValidPostCode';
+  }
+  return { stateName };
+}
+
+/**
+ * convert utc time to local date
+ * @param utcDate utc date
+ * @param stateName
+ * @param format
+ * @returns
+ */
+function convert2LocalDate(
+  utcDate: string,
+  stateName: string,
+  format: string
+): { localDate: string; day: string } {
+  const days = [DAY.Sun, DAY.Mon, DAY.Tue, DAY.Wed, DAY.Thu, DAY.Fri, DAY.Sat];
+
+  const stdDate = new Date(utcDate);
+  const timezone = getTimezone(stateName);
+  const localDate = moment.utc(stdDate).tz(timezone).format(format);
+
+  const day = days[new Date(localDate).getDay()];
+
+  return { localDate, day };
+}
+
+/**
+ * get timezone based on state name
+ * @param stateName
+ * @returns
+ */
+function getTimezone(stateName: string): string {
+  let timezone = 'Australia/ACT';
+  // standarize state names based on postcode
+  // also set time zone
+  switch (stateName) {
+    case STATE.NSW:
+      timezone = 'Australia/NSW';
+      break;
+    case STATE.ACT:
+      timezone = 'Australia/ACT';
+      break;
+    case STATE.VIC:
+      timezone = 'Australia/Victoria';
+      break;
+    case STATE.QLD:
+      timezone = 'Australia/Queensland';
+      break;
+    case STATE.SA:
+      timezone = 'Australia/South';
+      break;
+    case STATE.WA:
+      timezone = 'Australia/West';
+      break;
+    case STATE.TAS:
+      timezone = 'Australia/Tasmania';
+      break;
+    case STATE.NT:
+      timezone = 'Australia/North';
+      break;
+  }
+  return timezone;
+}

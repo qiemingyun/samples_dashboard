@@ -20,7 +20,8 @@
     "**/*.ts",
     "**/*.tsx",
     "components/AustraliaMap.tsx",
-    "utils/useFetch.ts"
+    "utils/useFetch.ts",
+    "__test__/parseData.test.ts"
   ],
   "exclude": ["node_modules"]
 }

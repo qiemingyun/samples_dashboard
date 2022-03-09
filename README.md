@@ -10,6 +10,31 @@ The GeoJson data used in displaying the Australian map is obtained from a github
 Please see the reference link for details:
 https://raw.githubusercontent.com/tonywr71/GeoJson-Data/master/australian-states.json
 
+## Main Structure
+
+├── __test__
+│   └── parseData.test.ts
+├── assets
+│   └── Australia.json
+├── components
+│   ├── AustraliaMap.tsx
+│   ├── SampleBar.tsx
+│   ├── SamplePie.tsx
+│   └── SelectOption.tsx
+├── pages
+│   ├── _app.js
+│   └── index.tsx
+├── styles
+│   ├── Home.module.css
+│   └── globals.css
+├── types
+│   ├── Enums.ts
+│   └── Sample.ts
+├── utils
+    ├── charts.ts
+    ├── parseData.ts
+    └── useFetch.ts
+
 ## Environment Required
 
 npm or yarn
@@ -21,7 +46,9 @@ IDE: Visual Studio Code
 ## Run Test
 
 ```bash
-
+npm run test
+# or
+yarn test
 ```
 
 ## Getting Started
